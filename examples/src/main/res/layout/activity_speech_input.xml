@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ai.olami.android.example.MainActivity"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="26dp"
+        android:layout_marginStart="26dp"
+        android:layout_marginTop="25dp"
+        android:text="@string/SpeechToText"
+        android:textColor="#000"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/recordButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"
+        android:text="@string/recordButton_start"
+        android:textAllCaps="false"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/cancelButton"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/recordButton"
+        android:layout_alignBottom="@+id/recordButton"
+        android:layout_toRightOf="@+id/recordButton"
+        android:text="X"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/voiceVolume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/recordButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="19dp"
+        android:layout_marginLeft="11dp"
+        android:layout_marginStart="11dp"
+        android:width="90dp"
+        android:text="@string/Volume"
+        android:textColor="#000"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/voiceVolumeBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/voiceVolume"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_toEndOf="@+id/voiceVolume"
+        android:layout_toRightOf="@+id/voiceVolume"
+        android:textColor="#000"
+        android:textSize="12sp"
+        tools:text="▌" />
+
+    <TextView
+        android:id="@+id/APIResponse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/STTText"
+        android:layout_alignStart="@+id/STTText"
+        android:layout_below="@+id/STTText"
+        android:layout_marginTop="45dp"
+        android:lineSpacingMultiplier="1.5"
+        android:maxLines="7"
+        android:textColor="#000"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/STTText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_alignStart="@+id/textView2"
+        android:layout_below="@+id/textView2"
+        android:layout_marginTop="31dp"
+        android:lineSpacingMultiplier="1.5"
+        android:singleLine="false"
+        android:textColor="#000"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/recognizeStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/voiceVolume"
+        android:layout_alignLeft="@+id/voiceVolume"
+        android:layout_alignStart="@+id/voiceVolume"
+        android:layout_marginBottom="10dp"
+        android:text="@string/RecognizeState"
+        android:textColor="#000"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/recordStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/recognizeStatus"
+        android:layout_alignLeft="@+id/recognizeStatus"
+        android:layout_alignStart="@+id/recognizeStatus"
+        android:layout_marginBottom="10dp"
+        android:text="@string/RecordState"
+        android:textColor="#000"
+        android:textSize="16sp" />
+
+</RelativeLayout>

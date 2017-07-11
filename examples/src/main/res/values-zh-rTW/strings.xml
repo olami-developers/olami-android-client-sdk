@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recordButton_start">開始</string>
+    <string name="app_name">OLAMI - Android 範例程式</string>
+    <string name="recordButton_stop">停止</string>
+    <string name="RecordState_STOPPED">停止</string>
+    <string name="RecordState_INITIALIZING">初始化</string>
+    <string name="RecordState_INITIALIZED">初始化完成</string>
+    <string name="RecordState_RECORDING">錄音中</string>
+    <string name="RecordState_ERROR">錯誤</string>
+    <string name="RecordState_STOPPING">停止中</string>
+    <string name="RecognizeState_STOPPED">停止</string>
+    <string name="RecognizeState_PROCESSING">辨識中</string>
+    <string name="RecognizeState_COMPLETED">辨識完成</string>
+    <string name="RecognizeState_ERROR">錯誤</string>
+    <string name="RecognizeState">辨識狀態</string>
+    <string name="RecordState">錄音狀態</string>
+    <string name="SpeechToText">語音辨識</string>
+    <string name="Volume">音量</string>
+    <string name="SpeechInput">語音輸入</string>
+    <string name="TextInput">文字輸入</string>
+    <string name="WordSegmentation">文字分詞</string>
+    <string name="NLIAnalysis">自然語言語意理解</string>
+    <string name="TypeIn">請輸入文字</string>
+    <string name="Submit">送出</string>
+    <string name="Response">返回結果</string>
+    <string name="Result">結果</string>
+    <string name="Setting">設定</string>
+    <string name="changeLocale">選擇語言</string>
+    <string name="changeToCN">切換至「簡體中文伺服器」</string>
+    <string name="changetoTW">切換至「繁體中文伺服器」</string>
+    <string name="WarningText">* 選擇簡體或繁體中文服務時, 應使用其對應的開發者帳號和KEY</string>
+    <string name="InputKey">請輸入AppKey和AppSecret</string>
+    <string name="Cancel">取消</string>
+    <string name="Input">請輸入</string>
+    <string name="Register">註冊開發者(前往官網)</string>
+    <string name="InputKeyIsEmpty">請輸入有效的Appkey和AppSecret</string>
+    <string name="GetMicrophonePermissionDenied">取得麥克風權限失敗</string>
+    <string name="GetMicrophonePermission">取得麥克風權限成功</string>
+    <string name="GetWriteStoragePermission">取得寫入外部裝置權限成功</string>
+    <string name="GetWriteStoragePermissionDenied">取得寫入外部裝置權限失敗</string>
+</resources>

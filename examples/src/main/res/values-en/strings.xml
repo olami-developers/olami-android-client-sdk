@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Olami Android Sample Code</string>
+    <string name="recordButton_start">Start</string>
+    <string name="recordButton_stop">Stop</string>
+    <string name="RecordState_STOPPED">Stopped</string>
+    <string name="RecordState_INITIALIZING">Initializing</string>
+    <string name="RecordState_INITIALIZED">Initialized</string>
+    <string name="RecordState_RECORDING">Recording</string>
+    <string name="RecordState_ERROR">Error</string>
+    <string name="RecordState_STOPPING">Stopping</string>
+    <string name="RecognizeState_STOPPED">Stopped</string>
+    <string name="RecognizeState_PROCESSING">Processing</string>
+    <string name="RecognizeState_COMPLETED">Completed</string>
+    <string name="RecognizeState_ERROR">Error</string>
+    <string name="RecognizeState">RecognizeState</string>
+    <string name="RecordState">RecordState</string>
+    <string name="SpeechToText">Speech to text</string>
+    <string name="Volume">Volume</string>
+    <string name="SpeechInput">Speech Input</string>
+    <string name="TextInput">Text Input</string>
+    <string name="WordSegmentation">Word Segmentation</string>
+    <string name="NLIAnalysis">NLI Analysis</string>
+    <string name="TypeIn">Type in your text</string>
+    <string name="Submit">Submit</string>
+    <string name="Response">Response</string>
+    <string name="Result">Result</string>
+    <string name="Setting">Setting</string>
+    <string name="changeLocale">Change Language</string>
+    <string name="changeToCN">Change to Simplified Chinese service</string>
+    <string name="changetoTW">Change to Traditional Chinese service</string>
+    <string name="WarningText">* Use different user account and keys when you change language service.</string>
+    <string name="InputKey">Please type in AppKey and AppSecret</string>
+    <string name="Cancel">Cancel</string>
+    <string name="Input">Please type in</string>
+    <string name="Register">Register Developer (olami.ai)</string>
+    <string name="InputKeyIsEmpty">Please type in AppKey and AppSecret</string>
+    <string name="GetMicrophonePermissionDenied">Getting microphone permission denied</string>
+    <string name="GetMicrophonePermission">Getting microphone permission success</string>
+    <string name="GetWriteStoragePermission">Getting write storage permission success</string>
+    <string name="GetWriteStoragePermissionDenied">Getting write storage permission denied</string>
+</resources>
