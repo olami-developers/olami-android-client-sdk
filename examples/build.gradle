@@ -61,3 +61,13 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
 }
+
+// Copy output files to '/bin' after build --------------
+task copyOutputFiles(type: Copy) {
+    from 'build/outputs/apk'
+    into "../bin"
+    include '*.apk'
+}
+
+build.finalizedBy(copyOutputFiles)
+// ------------------------------------------------------
