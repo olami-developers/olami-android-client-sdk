@@ -23,7 +23,7 @@
         android:layout_marginTop="16dp"
         android:hint="App Key"
         android:inputType="text"
-        android:text="172c5b7b7121407ba572da444a17977c" />
+        android:text="" />
 
     <EditText
         android:id="@+id/appSecretInput"
@@ -36,5 +36,5 @@
         android:fontFamily="sans-serif"
         android:hint="App Secret"
         android:inputType="text"
-        android:text="2115d0888bd049549581b7a0a67cde62" />
+        android:text="" />
 </LinearLayout>

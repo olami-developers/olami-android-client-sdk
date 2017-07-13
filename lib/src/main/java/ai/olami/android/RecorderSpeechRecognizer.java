@@ -425,8 +425,6 @@ public class RecorderSpeechRecognizer {
                 mAudioRecordOptionBitsPerFrame,
                 minBufferSize * 4);
 
-        Log.i(TAG, "AudioRecord select sample rate is : "+ mRecord.getSampleRate());
-
         // Waiting for AudioRecord initialized
         int retry = 0;
         while ((mRecord.getState() != AudioRecord.STATE_INITIALIZED) && (retry < 4)) {
@@ -544,22 +542,18 @@ public class RecorderSpeechRecognizer {
             mRecordDataQueue.clear();
             mRecordDataQueue = null;
         }
-
-        Log.i(TAG, "Exit Sender Thread.");
     }
 
     private void doGetting() throws Exception {
         while (!mCancel) {
             if (mGetting) {
                 Thread.sleep(mFrequencyToGettingResult);
-                Log.i(TAG, ">>>STT mCookie:" +mCookie.getContents());
                 APIResponse response = mRecognizer.requestRecognitionWithAll(mCookie);
                 if (response.ok() && response.hasData()) {
                     SpeechResult sttResult = response.getData().getSpeechResult();
                     if (mSendCallback) {
                         mListener.onRecognizeResultChange(response);
                     }
-                    Log.i(TAG, ">>>STT:" +response.getData().getSpeechResult().getResult());
                     if (sttResult.complete()) {
                         changeRecognizeState(RecognizeState.COMPLETED);
                         break;

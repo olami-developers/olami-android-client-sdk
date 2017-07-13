@@ -22,17 +22,11 @@ import ai.olami.cloudService.APIConfiguration;
 
 public class Config {
 
-    // * Replace your APP KEY with this variable.
-    public static String SAMPLE_APP_KEY = "*****your-app-key*****";
-
-    // * Replace your APP SECRET with this variable.
-    public static String SAMPLE_APP_SECRET = "*****your-app-secret*****";
-
     // * Setting localize option
     public static int SAMPLE_LOCALIZE_OPTION = APIConfiguration.LOCALIZE_OPTION_SIMPLIFIED_CHINESE;
 
-
-    private static String mAppKey = SAMPLE_APP_KEY;
+    // * Replace your APP KEY with this variable.
+    private static String mAppKey = "*****your-app-key*****";
     public static void setAppKey(String appKey) {
         mAppKey = appKey;
     }
@@ -40,7 +34,8 @@ public class Config {
         return mAppKey;
     }
 
-    private static String mAppSecret = SAMPLE_APP_SECRET;
+    // * Replace your APP SECRET with this variable.
+    private static String mAppSecret = "*****your-app-secret*****";
     public static void setAppSecret(String appSecret) {
         mAppSecret = appSecret;
     }

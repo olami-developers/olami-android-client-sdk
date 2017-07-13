@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
         // load the default App-Key & App-Secret.
         String appKey = Config.getAppKey();
         String appSecret = Config.getAppSecret();
-        if ((appKey.isEmpty() || appKey.equals(Config.SAMPLE_APP_KEY))
-                || (appSecret.isEmpty() || appSecret.equals(Config.SAMPLE_APP_SECRET))) {
+        if ((appKey.isEmpty() || appKey.startsWith("*"))
+                || (appSecret.isEmpty() || appSecret.startsWith("*"))) {
             // If the developer doesn't change keys, pop up and the developer to input their keys.
             onCreateConfigurationDialog().show();
         }
@@ -140,11 +140,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Manually switch the localization setting.
         if (id == R.id.setting_changeCN) {
-            switchLanguage(this, "china");
             Config.setLocalizeOption(APIConfiguration.LOCALIZE_OPTION_SIMPLIFIED_CHINESE);
+            switchLanguage(this, "china");
         } else if (id == R.id.setting_changeTW){
-            switchLanguage(this, "taiwan");
             Config.setLocalizeOption(APIConfiguration.LOCALIZE_OPTION_TRADITIONAL_CHINESE);
+            switchLanguage(this, "taiwan");
         }
 
         return super.onOptionsItemSelected(item);
@@ -202,7 +202,8 @@ public class MainActivity extends AppCompatActivity {
 
             String appKey = Config.getAppKey();
             String appSecret = Config.getAppSecret();
-            if (appKey.isEmpty() || appSecret.isEmpty()) {
+            if ((appKey.isEmpty() || appKey.startsWith("*"))
+                    || (appSecret.isEmpty() || appSecret.startsWith("*"))) {
                 onCreateConfigurationDialog().show();
             } else {
                 Intent intent;
