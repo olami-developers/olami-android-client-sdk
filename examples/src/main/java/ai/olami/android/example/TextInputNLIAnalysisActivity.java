@@ -64,6 +64,7 @@ public class TextInputNLIAnalysisActivity extends AppCompatActivity {
 
         // * Step 2: Create the text recognizer.
         mRecognizer = new TextRecognizer(config);
+        mRecognizer.setSdkType("android");
 
         // * Optional steps: Setup some other configurations.
         mRecognizer.setEndUserIdentifier("Someone");
