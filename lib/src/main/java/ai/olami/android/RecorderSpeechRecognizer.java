@@ -18,11 +18,8 @@
 
 package ai.olami.android;
 
-import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.MediaRecorder;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -41,32 +38,17 @@ import ai.olami.cloudService.CookieSet;
 import ai.olami.cloudService.SpeechRecognizer;
 import ai.olami.cloudService.SpeechResult;
 
-public class RecorderSpeechRecognizer {
+public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
 
     public final static String TAG = "OLAMI_RSR";
 
-    private static final int SAMPLE_RATE_44100 = 44100;
-    private static final int SAMPLE_RATE_16000 = 16000;
-    private static final int RECORD_FRAMES = 6;
-    private static final int FRAME_LENGTH_MILLISECONDS = SpeechRecognizer.AUDIO_LENGTH_MILLISECONDS_PER_FRAME;
-    private static final int RESERVED_INPUT_LENGTH_MILLISECONDS = 1000;
-    private static final int VAD_TAIL_SILENCE_LEVEL = 5;
-
     private static RecorderSpeechRecognizer mRecorderSpeechRecognizer = null;
+    private static AudioRecordManager mAudioRecordManager = null;
 
     private IRecorderSpeechRecognizerListener mListener = null;
     private CookieSet mCookie = null;
     private SpeechRecognizer mRecognizer = null;
     private AudioRecord mRecord = null;
-    private int mAudioRecordOptionChannels = -1;
-    private int mAudioRecordOptionBitsPerFrame = -1;
-    private int mFrameSize = 320;
-    private int mRecordDataSize = 0;
-    private int mMinUploadAudioLengthMilliseconds = RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS;
-    private int mUploadAudioLengthMilliseconds = 300;
-    private int mMinFrequencyToGettingResult = 300;
-    private int mFrequencyToGettingResult = 300;
-    private int mVADEndMilliseconds = 3000;
 
     private boolean mSendCallback = true;
     private boolean mGetting = false;
@@ -129,26 +111,8 @@ public class RecorderSpeechRecognizer {
         setListener(listener);
         setRecognizer(recognizer);
 
-        switch (SpeechRecognizer.AUDIO_CHANNELS) {
-            case 1:
-                mAudioRecordOptionChannels = AudioFormat.CHANNEL_IN_MONO;
-                break;
-            default:
-                mAudioRecordOptionChannels = AudioFormat.CHANNEL_IN_MONO;
-                break;
-        }
-
-        switch (SpeechRecognizer.AUDIO_BITS_PER_SAMPLE) {
-            case 16:
-                mAudioRecordOptionBitsPerFrame = AudioFormat.ENCODING_PCM_16BIT;
-                break;
-            default:
-                mAudioRecordOptionBitsPerFrame = AudioFormat.ENCODING_PCM_16BIT;
-                break;
-        }
-
-        mFrameSize = mRecognizer.getAudioFrameSize();
-        mRecordDataSize = RECORD_FRAMES * mFrameSize;
+        setFrameSize(mRecognizer.getAudioFrameSize());
+        setRecordDataSize(RECORD_FRAMES * getFrameSize());
 
         initState();
     }
@@ -186,6 +150,14 @@ public class RecorderSpeechRecognizer {
             mRecorderSpeechRecognizer.setRecognizer(recognizer);
         }
 
+        if (mAudioRecordManager == null) {
+            try {
+                mAudioRecordManager = AudioRecordManager.create();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         return mRecorderSpeechRecognizer;
     }
 
@@ -205,6 +177,7 @@ public class RecorderSpeechRecognizer {
      */
     public void setRecognizer(SpeechRecognizer recognizer) {
         mRecognizer = recognizer;
+        mRecognizer.setSdkType(SDK_TYPE);
     }
 
     /**
@@ -225,43 +198,6 @@ public class RecorderSpeechRecognizer {
      */
     public void setTimeout(int milliseconds) {
         mRecognizer.setTimeout(milliseconds);
-    }
-
-    /**
-     * Set length of end time of the VAD in milliseconds to stop voice recording automatically.
-     *
-     * @param milliseconds - length of end time in milliseconds for the speech input idle.
-     */
-    public void setLengthOfVADEnd(int milliseconds) {
-        mVADEndMilliseconds = milliseconds;
-    }
-
-    /**
-     * Set audio length in milliseconds to upload,
-     * then the recognizer client will upload parts of audio once every milliseconds you set.
-     *
-     * @param milliseconds - How long of the audio in milliseconds do you want to upload once.
-     */
-    public void setSpeechUploadLength(int milliseconds) {
-        if (mUploadAudioLengthMilliseconds < mMinUploadAudioLengthMilliseconds) {
-            throw new IllegalArgumentException("The length in milliseconds cannot be less than "
-                    + mMinUploadAudioLengthMilliseconds);
-        }
-        mUploadAudioLengthMilliseconds = milliseconds;
-    }
-
-    /**
-     * Set the frequency in milliseconds of the recognition result query,
-     * then the recognizer client will query the result once every milliseconds you set.
-     *
-     * @param milliseconds - How long in milliseconds do you want to query once.
-     */
-    public void setResultQueryFrequency(int milliseconds) {
-        if (mFrequencyToGettingResult < mMinFrequencyToGettingResult) {
-            throw new IllegalArgumentException("The frequency in milliseconds cannot be less than "
-                    + mMinFrequencyToGettingResult);
-        }
-        mFrequencyToGettingResult = milliseconds;
     }
 
     /**
@@ -313,6 +249,17 @@ public class RecorderSpeechRecognizer {
         mCookie = new CookieSet();
 
         mRecordDataQueue = new LinkedBlockingQueue();
+
+        if (mRecord == null) {
+            try {
+                mRecord = mAudioRecordManager.getAudioRecord();
+            } catch (Exception e) {
+                changeRecordState(RecordState.ERROR);
+                mListener.onException(e);
+            }
+        }
+
+        changeRecordState(RecordState.INITIALIZED);
 
         // Init Recorder Thread
         mRecorderThread = new Thread(new Runnable() {
@@ -391,14 +338,7 @@ public class RecorderSpeechRecognizer {
     }
 
     private void stopAndReleaseAudioRecord() {
-        if ((mRecord != null) && (mRecord.getState() != AudioRecord.STATE_UNINITIALIZED)) {
-            try {
-                mRecord.stop();
-                mRecord.release();
-            } catch (Exception e) {
-                Log.e(TAG, "stopAndReleaseAudioRecord() Exception: " + e.getMessage());
-            }
-        }
+        mAudioRecordManager.stopAndReleaseAudioRecord();
         mRecord = null;
     }
 
@@ -414,86 +354,64 @@ public class RecorderSpeechRecognizer {
     }
 
     private void doRecording() throws Exception {
-        int minBufferSize = AudioRecord.getMinBufferSize(
-                SAMPLE_RATE_44100,
-                mAudioRecordOptionChannels,
-                mAudioRecordOptionBitsPerFrame);
-        mRecord = new AudioRecord(
-                MediaRecorder.AudioSource.MIC,
-                SAMPLE_RATE_44100,
-                mAudioRecordOptionChannels,
-                mAudioRecordOptionBitsPerFrame,
-                minBufferSize * 4);
+        mAudioRecordManager.startRecording();
+        mRecord = mAudioRecordManager.getAudioRecord();
 
-        // Waiting for AudioRecord initialized
-        int retry = 0;
-        while ((mRecord.getState() != AudioRecord.STATE_INITIALIZED) && (retry < 4)) {
-            Thread.sleep(500);
-            retry++;
-        }
+        changeRecordState(RecordState.RECORDING);
 
-        // Check AudioRecord is initialized or not
-        if (mRecord.getState() != AudioRecord.STATE_INITIALIZED) {
-            throw new UnknownError("Failed to initialize AudioRecord.");
-        } else {
-            changeRecordState(RecordState.INITIALIZED);
-            mRecord.startRecording();
-            changeRecordState(RecordState.RECORDING);
+        short[] audioData441 = new short[441 * RECORD_FRAMES];
+        byte[] audioData = null;
+        LinkedList<byte[]> tempInputs = new LinkedList<byte[]>();
+        int reservedBlocks = (RESERVED_INPUT_LENGTH_MILLISECONDS / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
+        int vadTailBlocks = (getVADEndMilliseconds() / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
+        int inputVolume = 0;
+        int silence = 0;
 
-            short[] audioData441 = new short[441 * RECORD_FRAMES];
-            byte[] audioData = null;
-            LinkedList<byte[]> tempInputs = new LinkedList<byte[]>();
-            int reservedBlocks = (RESERVED_INPUT_LENGTH_MILLISECONDS / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
-            int vadTailBlocks = (mVADEndMilliseconds / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
-            int inputVolume = 0;
-            int silence = 0;
+        while (mRecordState == RecordState.RECORDING) {
+            synchronized (mRecordDataQueue) {
+                if (mRecord.read(audioData441, 0, audioData441.length) == audioData441.length) {
+                    audioData = new byte[getRecordDataSize()];
+                    AudioRecordManager.convert441To16(audioData441, audioData);
+                    saveRecordToFile(audioData, false);
 
-            while (mRecordState == RecordState.RECORDING) {
-                synchronized (mRecordDataQueue) {
-                    if (mRecord.read(audioData441, 0, audioData441.length) == audioData441.length) {
-                        audioData = new byte[mRecordDataSize];
-                        convert441To16(audioData441, audioData);
-                        saveRecordToFile(audioData, false);
+                    inputVolume = getMicInputVolume(audioData);
+                    mListener.onRecordVolumeChange(inputVolume);
 
-                        inputVolume = getMicInputVolume(audioData);
-                        mListener.onRecordVolumeChange(inputVolume);
-
-                        if (!mCapturedVoiceBegin) {
-                            if (inputVolume == 0) {
-                                // Speech may not have started. Buffering silence audio as the head.
-                                tempInputs.add(audioData);
-                                if (tempInputs.size() > reservedBlocks) {
-                                    tempInputs.removeFirst();
-                                }
-                            } else {
-                                mCapturedVoiceBegin = true;
-                                changeRecognizeState(RecognizeState.PROCESSING);
-                                // Insert buffered silence audio into the beginning of the real speech input.
-                                while (!tempInputs.isEmpty()) {
-                                    mRecordDataQueue.put(tempInputs.poll());
-                                }
-                                // Then append the real speech data
-                                mRecordDataQueue.put(audioData);
+                    if (!mCapturedVoiceBegin) {
+                        if (inputVolume == 0) {
+                            // Speech may not have started. Buffering silence audio as the head.
+                            tempInputs.add(audioData);
+                            if (tempInputs.size() > reservedBlocks) {
+                                tempInputs.removeFirst();
                             }
                         } else {
-                            mRecordDataQueue.put(audioData);
-                            if (inputVolume < VAD_TAIL_SILENCE_LEVEL) {
-                                silence++;
-                                if (silence > vadTailBlocks) {
-                                    stop();
-                                    break;
-                                }
-                            } else {
-                                silence = 0;
+                            mCapturedVoiceBegin = true;
+                            changeRecognizeState(RecognizeState.PROCESSING);
+                            // Insert buffered silence audio into the beginning of the real speech input.
+                            while (!tempInputs.isEmpty()) {
+                                mRecordDataQueue.put(tempInputs.poll());
                             }
+                            // Then append the real speech data
+                            mRecordDataQueue.put(audioData);
+                        }
+                    } else {
+                        mRecordDataQueue.put(audioData);
+                        if (inputVolume < VAD_TAIL_SILENCE_LEVEL) {
+                            silence++;
+                            if (silence > vadTailBlocks) {
+                                stop();
+                                break;
+                            }
+                        } else {
+                            silence = 0;
                         }
                     }
                 }
-            };
-
-            stopAndReleaseAudioRecord();
-            saveRecordToFile(new byte[]{0}, true);
+            }
         }
+
+        stopAndReleaseAudioRecord();
+        saveRecordToFile(new byte[]{0}, true);
     }
 
     private void doSending() throws Exception {
@@ -505,9 +423,9 @@ public class RecorderSpeechRecognizer {
             if (!mRecordDataQueue.isEmpty()) {
                 byte[] audioData = (byte[]) mRecordDataQueue.take();
                 mIsFinal = (isRecodingStopped() && (mRecordDataQueue.isEmpty()));
-                length += ((audioData.length / mFrameSize) * FRAME_LENGTH_MILLISECONDS);
+                length += ((audioData.length / getFrameSize()) * FRAME_LENGTH_MILLISECONDS);
                 mRecognizer.appendAudioFramesData(audioData);
-                if ((length >= mUploadAudioLengthMilliseconds) || mIsFinal) {
+                if ((length >= getUploadAudioLengthMilliseconds()) || mIsFinal) {
                     APIResponse response = mRecognizer.flushToUploadAudio(mCookie, mIsFinal);
                     if (response.ok()) {
                         mGetting = true;
@@ -521,7 +439,7 @@ public class RecorderSpeechRecognizer {
                 // Recorder stopped and the last audio sent at the same time, but mIsFinal = false.
                 if (isRecodingStopped()) {
                     mIsFinal = true;
-                    byte[] audioData = new byte[mRecordDataSize];
+                    byte[] audioData = new byte[getRecordDataSize()];
                     Arrays.fill(audioData, (byte) 0);
                     APIResponse response = mRecognizer.uploadAudio(mCookie, audioData, mIsFinal);
                     if (response.ok()) {
@@ -547,7 +465,7 @@ public class RecorderSpeechRecognizer {
     private void doGetting() throws Exception {
         while (!mCancel) {
             if (mGetting) {
-                Thread.sleep(mFrequencyToGettingResult);
+                Thread.sleep(getFrequencyToGettingResult());
                 APIResponse response = mRecognizer.requestRecognitionWithAll(mCookie);
                 if (response.ok() && response.hasData()) {
                     SpeechResult sttResult = response.getData().getSpeechResult();
@@ -564,26 +482,6 @@ public class RecorderSpeechRecognizer {
             }
         }
         changeRecognizeState(RecognizeState.STOPPED);
-    }
-
-    private void convert441To16(short[] from, byte[] to) {
-        double ratio = (double) SAMPLE_RATE_44100 / (double) SAMPLE_RATE_16000;
-        for (int i = 0; i < to.length / 2; i++) {
-            double p = i * ratio;
-            int m = (int) p;
-            double delta = p - m;
-            int n = m;
-            if (delta != 0) {
-                n = m + 1;
-            }
-            if (n >= from.length - 1) {
-                n = from.length - 1;
-            }
-
-            short t = (short) (from[m] + (short) ((from[n] - from[m]) * delta));
-            to[2 * i] = (byte) (t & 0x00ff);
-            to[2 * i + 1] = (byte) ((t >> 8) & 0x00ff);
-        }
     }
 
     private void changeRecordState(RecordState state) {
