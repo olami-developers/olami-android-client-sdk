@@ -86,41 +86,48 @@ public class SpeechInputActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // * Step 1: Configure your key and localize option.
-        APIConfiguration config = new APIConfiguration(
-                Config.getAppKey(), Config.getAppSecret(), Config.getLocalizeOption());
+        // Check if the user agrees to access the microphone
+        boolean hasMicrophonePermission = checkApplicationPermissions(
+                Manifest.permission.RECORD_AUDIO,
+                REQUEST_MICROPHONE);
 
-        // * Step 2: Create the microphone recording speech recognizer.
-        //           ----------------------------------------------------------
-        //           You should implement the IRecorderSpeechRecognizerListener
-        //           to get all callbacks and assign the instance of your
-        //           listener class into this recognizer.
-        mRecognizer = RecorderSpeechRecognizer.create(new SpeechRecognizerListener(), config);
+        if (hasMicrophonePermission) {
+            // * Step 1: Configure your key and localize option.
+            APIConfiguration config = new APIConfiguration(
+                    Config.getAppKey(), Config.getAppSecret(), Config.getLocalizeOption());
 
-        // * Optional steps: Setup some other configurations.
-        //                   You can use default settings without bellow steps.
-        mRecognizer.setEndUserIdentifier("Someone");
-        mRecognizer.setTimeout(3000);
+            // * Step 2: Create the microphone recording speech recognizer.
+            //           ----------------------------------------------------------
+            //           You should implement the IRecorderSpeechRecognizerListener
+            //           to get all callbacks and assign the instance of your
+            //           listener class into this recognizer.
+            mRecognizer = RecorderSpeechRecognizer.create(new SpeechRecognizerListener(), config);
 
-        // * Advanced setting example.
-        //   These are also optional steps, so you can skip these
-        //   (or any one of these) to use default setting(s).
-        // ------------------------------------------------------------------
-        // * You can set the length of end time of the VAD in milliseconds
-        //   to stop voice recording automatically.
-        mRecognizer.setLengthOfVADEnd(3000);
-        // * You can set the frequency in milliseconds of the recognition
-        //   result query, then the recognizer client will query the result
-        //   once every milliseconds you set.
-        mRecognizer.setResultQueryFrequency(300);
-        // * You can set audio length in milliseconds to upload, then
-        //   the recognizer client will upload parts of audio once every
-        //   milliseconds you set.
-        mRecognizer.setSpeechUploadLength(300);
-        // ------------------------------------------------------------------
+            // * Optional steps: Setup some other configurations.
+            //                   You can use default settings without bellow steps.
+            mRecognizer.setEndUserIdentifier("Someone");
+            mRecognizer.setTimeout(3000);
 
-        // Initialize volume bar of the input audio.
-        voiceVolumeChangeHandler(0);
+            // * Advanced setting example.
+            //   These are also optional steps, so you can skip these
+            //   (or any one of these) to use default setting(s).
+            // ------------------------------------------------------------------
+            // * You can set the length of end time of the VAD in milliseconds
+            //   to stop voice recording automatically.
+            mRecognizer.setLengthOfVADEnd(3000);
+            // * You can set the frequency in milliseconds of the recognition
+            //   result query, then the recognizer client will query the result
+            //   once every milliseconds you set.
+            mRecognizer.setResultQueryFrequency(300);
+            // * You can set audio length in milliseconds to upload, then
+            //   the recognizer client will upload parts of audio once every
+            //   milliseconds you set.
+            mRecognizer.setSpeechUploadLength(300);
+            // ------------------------------------------------------------------
+
+            // Initialize volume bar of the input audio.
+            voiceVolumeChangeHandler(0);
+        }
     }
 
     @Override
@@ -128,7 +135,9 @@ public class SpeechInputActivity extends AppCompatActivity {
         super.onPause();
 
         // * Release the recognizer when program stops or exits.
-        mRecognizer.release();
+        if (mRecognizer != null) {
+            mRecognizer.release();
+        }
     }
 
     protected class recordButtonListener implements View.OnClickListener {
@@ -139,13 +148,6 @@ public class SpeechInputActivity extends AppCompatActivity {
 
             // Check to see if we should start recording or stop manually.
             if (mRecordState == RecorderSpeechRecognizer.RecordState.STOPPED) {
-
-                // Check if the user agrees to access the microphone
-                boolean hasMicrophonePermission = checkApplicationPermissions(
-                        Manifest.permission.RECORD_AUDIO,
-                        REQUEST_MICROPHONE);
-
-                if (hasMicrophonePermission) {
                     try {
 
                         // * Request to start voice recording and recognition.
@@ -157,7 +159,6 @@ public class SpeechInputActivity extends AppCompatActivity {
 
                     }
                     recordButton.setEnabled(false);
-                }
 
             } else if (mRecordState == RecorderSpeechRecognizer.RecordState.RECORDING) {
 
