@@ -148,17 +148,17 @@ public class SpeechInputActivity extends AppCompatActivity {
 
             // Check to see if we should start recording or stop manually.
             if (mRecordState == RecorderSpeechRecognizer.RecordState.STOPPED) {
-                    try {
+                try {
 
-                        // * Request to start voice recording and recognition.
-                        mRecognizer.start();
+                    // * Request to start voice recording and recognition.
+                    mRecognizer.start();
 
-                    } catch (InterruptedException e) {
+                } catch (InterruptedException e) {
 
-                        e.printStackTrace();
+                    e.printStackTrace();
 
-                    }
-                    recordButton.setEnabled(false);
+                }
+                recordButton.setEnabled(false);
 
             } else if (mRecordState == RecorderSpeechRecognizer.RecordState.RECORDING) {
 
