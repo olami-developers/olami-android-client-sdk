@@ -20,7 +20,6 @@ package ai.olami.android;
 
 import android.media.AudioRecord;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -138,7 +137,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
         if (mKeepRecordingSpeechRecognizer == null) {
             mKeepRecordingSpeechRecognizer = new KeepRecordingSpeechRecognizer(recognizeListener, recognizer);
         } else {
-            mKeepRecordingSpeechRecognizer.release();
+            mKeepRecordingSpeechRecognizer.stopRecordingAndReleaseResources();
             mKeepRecordingSpeechRecognizer = new KeepRecordingSpeechRecognizer(recognizeListener, recognizer);
         }
 
@@ -212,21 +211,21 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
         return mRecognizeState;
     }
 
-    public void release() {
+    /**
+     * Stop audio recording and release all resources.
+     */
+    public void stopRecordingAndReleaseResources() {
         // Disable callback
         mSendCallback = false;
         // Force to cancel all processes.
         cancelRecognizing();
 
-        if (mAudioRecord != null) {
-            stopAndReleaseAudioRecord();
-            mAudioRecord = null;
+        if (mAudioRecordManager != null) {
+            mAudioRecordManager.stopAndRelease();
         }
 
-        if (mAudioRecordManager != null) {
-            mAudioRecordManager.stopAndReleaseAudioRecord();
-            mAudioRecordManager = null;
-        }
+        mAudioRecord = null;
+        mAudioRecordManager = null;
 
         // Force to change state for re-startRecording.
         initRecognizeState();
@@ -241,7 +240,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
      */
     public void startRecording() throws Exception {
         mAudioRecordManager.startRecording();
-        setAudioRecording(mAudioRecordManager.getAudioRecord());
+        setAudioRecord(mAudioRecordManager.getAudioRecord());
     }
 
     /**
@@ -362,7 +361,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
      * Set AudioRecord for the KeepRecordingSpeechRecognizer instance.
      *
      */
-    public void setAudioRecording(AudioRecord audioRecord) {
+    public void setAudioRecord(AudioRecord audioRecord) {
         mAudioRecord = audioRecord;
     }
 
@@ -373,15 +372,6 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
      */
     public void enableSaveRecordToFIle(boolean saveToFile) {
         enableSaveRecordToFile(saveToFile, getDateTime() +".pcm");
-    }
-
-    /**
-     * Stop and release microphone resource.
-     *
-     */
-    public void stopAndReleaseAudioRecord() {
-        mAudioRecordManager.stopAndReleaseAudioRecord();
-        mAudioRecord = null;
     }
 
     /**

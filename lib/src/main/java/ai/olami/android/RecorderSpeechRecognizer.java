@@ -196,7 +196,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
      *
      * @param milliseconds - Timeout in milliseconds.
      */
-    public void setTimeout(int milliseconds) {
+    public void setApiRequestTimeout(int milliseconds) {
         mRecognizer.setTimeout(milliseconds);
     }
 
@@ -320,7 +320,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
     }
 
     /**
-     * Stop or cancel all processes and then release resources.
+     * Stop or cancel all processes and then stopRecordingAndReleaseResources resources.
      * This will not make any callback even if you use him to terminate any process.
      */
     public void release() {
@@ -338,7 +338,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
     }
 
     private void stopAndReleaseAudioRecord() {
-        mAudioRecordManager.stopAndReleaseAudioRecord();
+        mAudioRecordManager.stopAndRelease();
         mRecord = null;
     }
 

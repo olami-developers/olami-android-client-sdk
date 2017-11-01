@@ -19,6 +19,7 @@
 package ai.olami.android.example;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -68,6 +69,10 @@ public class SpeechInputActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_speech_input);
 
+
+        Intent intent = getIntent();
+        Config.setLocalizeOption(intent.getIntExtra("LOCALIZE_OPTION", Config.getLocalizeOption()));
+
         recordButton = (Button) findViewById(R.id.recordButton);
         cancelButton = (Button) findViewById(R.id.cancelButton);
         voiceVolumeText = (TextView) findViewById(R.id.voiceVolume);
@@ -106,7 +111,7 @@ public class SpeechInputActivity extends AppCompatActivity {
             // * Optional steps: Setup some other configurations.
             //                   You can use default settings without bellow steps.
             mRecognizer.setEndUserIdentifier("Someone");
-            mRecognizer.setTimeout(3000);
+            mRecognizer.setApiRequestTimeout(3000);
 
             // * Advanced setting example.
             //   These are also optional steps, so you can skip these

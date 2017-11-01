@@ -37,7 +37,7 @@ public class AudioRecordManager {
     private int mAudioRecordOptionChannels = -1;
     private int mAudioRecordOptionBitsPerFrame = -1;
 
-    private void AudioRecordFactory() {
+    private void AudioRecordManager() {
 
     }
 
@@ -158,16 +158,16 @@ public class AudioRecordManager {
     }
 
     /**
-     * Stop and release microphone resource.
+     * Stop and release resource.
      *
      */
-    public void stopAndReleaseAudioRecord() {
+    public void stopAndRelease() {
         if ((mAudioRecord != null) && (mAudioRecord.getState() != AudioRecord.STATE_UNINITIALIZED)) {
             try {
                 mAudioRecord.stop();
                 mAudioRecord.release();
             } catch (Exception e) {
-                Log.e(TAG, "stopAndReleaseAudioRecord() Exception: " + e.getMessage());
+                Log.e(TAG, "stopAndRelease() Exception: " + e.getMessage());
             }
         }
         mAudioRecord = null;

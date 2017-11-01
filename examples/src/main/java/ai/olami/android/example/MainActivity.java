@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.LocaleList;
@@ -211,16 +212,19 @@ public class MainActivity extends AppCompatActivity {
                     case 0:
                         // Start SpeechInput Activity
                         intent = new Intent(MainActivity.this, SpeechInputActivity.class);
+                        intent.putExtra("LOCALIZE_OPTION", Config.getLocalizeOption());
                         startActivity(intent);
                         break;
                     case 1:
                         // Start TextInputWordSegmentation Activity
                         intent = new Intent(MainActivity.this, TextInputWordSegmentationActivity.class);
+                        intent.putExtra("LOCALIZE_OPTION", Config.getLocalizeOption());
                         startActivity(intent);
                         break;
                     case 2:
                         // Start TextInputNLIAnalysis Activity
                         intent = new Intent(MainActivity.this, TextInputNLIAnalysisActivity.class);
+                        intent.putExtra("LOCALIZE_OPTION", Config.getLocalizeOption());
                         startActivity(intent);
                         break;
                     default:

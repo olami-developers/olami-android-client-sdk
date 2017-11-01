@@ -18,6 +18,7 @@
 
 package ai.olami.android.example;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -48,6 +49,9 @@ public class TextInputWordSegmentationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text_input_word_segmentation);
+
+        Intent intent = getIntent();
+        Config.setLocalizeOption(intent.getIntExtra("LOCALIZE_OPTION", Config.getLocalizeOption()));
 
         textInputSubmitButton = (Button) findViewById(R.id.textSubmitButton);
         textInputSubmitButton.setOnClickListener(new textInputSubmitButtonListener());
