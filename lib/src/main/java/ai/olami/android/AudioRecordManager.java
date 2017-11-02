@@ -34,9 +34,6 @@ public class AudioRecordManager {
     public static final int SAMPLE_RATE_44100 = 44100;
     public static final int SAMPLE_RATE_16000 = 16000;
 
-    private int mAudioRecordOptionChannels = -1;
-    private int mAudioRecordOptionBitsPerFrame = -1;
-
     private void AudioRecordManager() {
 
     }
@@ -105,36 +102,55 @@ public class AudioRecordManager {
         mAudioRecord.startRecording();
     }
 
-    private void initializeAudioRecord() throws Exception {
+    /**
+     * Get the normal supported sample rate
+     *
+     * @return Sample rate
+     */
+    public static int getSampleRateConfig() {
+        return SAMPLE_RATE_44100;
+    }
+
+    /**
+     * Get the normal supported audio channel setting
+     *
+     * @return Audio channels
+     */
+    public static int getAudioChannelConfig() {
         switch (SpeechRecognizer.AUDIO_CHANNELS) {
             case 1:
-                mAudioRecordOptionChannels = AudioFormat.CHANNEL_IN_MONO;
-                break;
-            default:
-                mAudioRecordOptionChannels = AudioFormat.CHANNEL_IN_MONO;
-                break;
+                return AudioFormat.CHANNEL_IN_MONO;
         }
 
-        switch (SpeechRecognizer.AUDIO_BITS_PER_SAMPLE) {
+        return AudioFormat.CHANNEL_IN_MONO;
+    }
+
+    /**
+     * Get the normal supported audio data encoding
+     *
+     * @return Audio data encoding
+     */
+    public static int getAudioFormatConfig() {
+        switch (SpeechRecognizer.AUDIO_CHANNELS) {
             case 16:
-                mAudioRecordOptionBitsPerFrame = AudioFormat.ENCODING_PCM_16BIT;
-                break;
-            default:
-                mAudioRecordOptionBitsPerFrame = AudioFormat.ENCODING_PCM_16BIT;
-                break;
+                return AudioFormat.ENCODING_PCM_16BIT;
         }
 
+        return AudioFormat.ENCODING_PCM_16BIT;
+    }
+
+    private void initializeAudioRecord() throws Exception {
         int minBufferSize = AudioRecord.getMinBufferSize(
-                SAMPLE_RATE_44100,
-                mAudioRecordOptionChannels,
-                mAudioRecordOptionBitsPerFrame);
+                getSampleRateConfig(),
+                getAudioChannelConfig(),
+                getAudioFormatConfig());
 
         if (mAudioRecord == null) {
             mAudioRecord = new AudioRecord(
                     MediaRecorder.AudioSource.MIC,
-                    SAMPLE_RATE_44100,
-                    mAudioRecordOptionChannels,
-                    mAudioRecordOptionBitsPerFrame,
+                    getSampleRateConfig(),
+                    getAudioChannelConfig(),
+                    getAudioFormatConfig(),
                     minBufferSize * 4);
         }
 
