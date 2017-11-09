@@ -8,7 +8,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 25
         versionCode 2
-        versionName "2.3.0"
+        versionName "2.3.1"
 
         archivesBaseName = "olami-android-client"
         version = android.defaultConfig.versionName
@@ -44,9 +44,9 @@ configurations {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'ai.olami:olami-java-client:1.1.1'
+    compile 'ai.olami:olami-java-client:1.2.0'
 
-    doc 'ai.olami:olami-java-client:1.1.1:sources'
+    doc 'ai.olami:olami-java-client:1.2.0:sources'
 }
 
 
