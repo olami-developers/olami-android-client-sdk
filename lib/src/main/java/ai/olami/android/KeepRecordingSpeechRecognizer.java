@@ -324,14 +324,16 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
      *
      */
     public void stopRecognizing() {
-        mRecording = false;
+        if (mRecording) {
+            mRecording = false;
 
-        // Waite for the recording stopped.
-        while (!mRecordStopped) {
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                mCallback.onException(e);
+            // Waite for the recording stopped.
+            while (!mRecordStopped) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    mCallback.onException(e);
+                }
             }
         }
     }
