@@ -37,10 +37,11 @@ import ai.olami.cloudService.APIResponse;
 import ai.olami.cloudService.CookieSet;
 import ai.olami.cloudService.SpeechRecognizer;
 import ai.olami.cloudService.SpeechResult;
+import ai.olami.cloudService.NLIConfig;
 
 public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
 
-    public final static String TAG = "OLAMI_RSR";
+    private final static String TAG = "OLAMI_RSR";
 
     private static RecorderSpeechRecognizer mRecorderSpeechRecognizer = null;
     private static AudioRecordManager mAudioRecordManager = null;
@@ -49,6 +50,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
     private CookieSet mCookie = null;
     private SpeechRecognizer mRecognizer = null;
     private AudioRecord mRecord = null;
+    private NLIConfig mNLIConfig = null;
 
     private boolean mSendCallback = true;
     private boolean mGetting = false;
@@ -56,6 +58,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
     private boolean mIsFinal = false;
     private boolean mCapturedVoiceBegin = false;
     private boolean mSaveRecordToFile = false;
+    private boolean mAutoStopRecordingFlag = true;
 
     private BlockingQueue mRecordDataQueue = null;
 
@@ -201,6 +204,24 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
     }
 
     /**
+     * Enable or disable automatic stop voice recording.
+     *
+     * @param enable - Set FALSE to disable.
+     */
+    public void enableAutoStopRecording(boolean enable) {
+        mAutoStopRecordingFlag = enable;
+    }
+
+    /**
+     * Check if automatic stop voice recording is enabled.
+     *
+     * @return - TRUE for enabled.
+     */
+    public boolean isAutoStopRecordingEnabled() {
+        return mAutoStopRecordingFlag;
+    }
+
+    /**
      * Get current recording state.
      *
      * @return - Recording state.
@@ -225,6 +246,20 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
      * @throws IllegalStateException You are using this method in a wrong operation state.
      */
     public void start() throws InterruptedException, IllegalStateException {
+        start(null);
+    }
+
+    /**
+     * Enable microphone then start the voice recording and the recognize processing.
+     *
+     * @param nliConfig - NLIConfig object.
+     *
+     * @throws InterruptedException There is something wrong.
+     * @throws IllegalStateException You are using this method in a wrong operation state.
+     */
+    public void start(NLIConfig nliConfig)
+            throws InterruptedException, IllegalStateException {
+
         if (mRecordState != RecordState.STOPPED) {
             throw new IllegalStateException("The state of recording is not STOPPED.");
         }
@@ -247,6 +282,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
         mIsFinal = false;
         mCapturedVoiceBegin = false;
         mCookie = new CookieSet();
+        mNLIConfig = nliConfig;
 
         mRecordDataQueue = new LinkedBlockingQueue();
 
@@ -302,6 +338,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
             }
         });
         mGetterThread.start();
+
     }
 
     /**
@@ -363,9 +400,12 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
         byte[] audioData = null;
         LinkedList<byte[]> tempInputs = new LinkedList<byte[]>();
         int reservedBlocks = (RESERVED_INPUT_LENGTH_MILLISECONDS / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
+        int instantNoiseBlocks = (INSTANT_NOISE_LENGTH_MILLISECONDS / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
         int vadTailBlocks = (getVADEndMilliseconds() / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
         int inputVolume = 0;
+        int priInputVolume = 0;
         int silence = 0;
+        int instantNoise = 0;
 
         while (mRecordState == RecordState.RECORDING) {
             synchronized (mRecordDataQueue) {
@@ -396,16 +436,34 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
                         }
                     } else {
                         mRecordDataQueue.put(audioData);
-                        if (inputVolume < VAD_TAIL_SILENCE_LEVEL) {
+                        if (inputVolume > getSilenceLevel()) {
+                            if (silence == 0) {
+                                instantNoise = 0;
+                            }
+                            if (silence > 0) {
+                                if (instantNoise == 0) {
+                                    instantNoise++;
+                                } else {
+                                    if ((instantNoise < instantNoiseBlocks)
+                                            && (priInputVolume > inputVolume)) {
+                                        instantNoise++;
+                                    } else {
+                                        silence = 0;
+                                    }
+                                }
+                            }
+                        } else {
                             silence++;
-                            if (silence > vadTailBlocks) {
+                        }
+                        if (silence > vadTailBlocks) {
+                            if (mAutoStopRecordingFlag) {
                                 stop();
                                 break;
                             }
-                        } else {
-                            silence = 0;
                         }
                     }
+
+                    priInputVolume = inputVolume;
                 }
             }
         }
@@ -466,7 +524,18 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
         while (!mCancel) {
             if (mGetting) {
                 Thread.sleep(getFrequencyToGettingResult());
-                APIResponse response = mRecognizer.requestRecognitionWithAll(mCookie);
+                APIResponse response = null;
+                switch (getRecognizeResultType()) {
+                    case RECOGNIZE_RESULT_TYPE_ALL:
+                        response = mRecognizer.requestRecognitionWithAll(mCookie, mNLIConfig);
+                        break;
+                    case RECOGNIZE_RESULT_TYPE_STT:
+                        response = mRecognizer.requestRecognition(mCookie);
+                        break;
+                    case RECOGNIZE_RESULT_TYPE_NLI:
+                        response = mRecognizer.requestRecognitionWithNLI(mCookie, mNLIConfig);
+                        break;
+                }
                 if (response.ok() && response.hasData()) {
                     SpeechResult sttResult = response.getData().getSpeechResult();
                     if (mSendCallback) {

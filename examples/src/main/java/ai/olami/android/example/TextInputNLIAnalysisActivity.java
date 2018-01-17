@@ -33,11 +33,12 @@ import com.google.gson.Gson;
 import ai.olami.cloudService.APIConfiguration;
 import ai.olami.cloudService.APIResponse;
 import ai.olami.cloudService.TextRecognizer;
+import ai.olami.cloudService.NLIConfig;
 import ai.olami.util.GsonFactory;
 
 public class TextInputNLIAnalysisActivity extends AppCompatActivity {
 
-    public final static String TAG = "TextInputNLIAnalysisActivity";
+    private final static String TAG = "TextInputNLIAnalysisActivity";
 
     private Button textInputSubmitButton;
     private EditText textInputEdit;
@@ -95,6 +96,18 @@ public class TextInputNLIAnalysisActivity extends AppCompatActivity {
                 try {
                     // * Send text to request NLI recognition.
                     APIResponse response = mRecognizer.requestNLI(textInputEdit.getText().toString());
+                    //
+                    // You can also send text with NLIConfig to append "nli_config" JSON object.
+                    //
+                    // For Example,
+                    // try to replace 'requestNLI(inputText)' with the following sample code:
+                    // ===================================================================
+                    // NLIConfig nliConfig = new NLIConfig();
+                    // nliConfig.setSlotName("myslot");
+                    // APIResponse response = mRecognizer.requestNLI(textInputEdit.getText().toString(), nliConfig);
+                    // ===================================================================
+                    //
+
                     // Check request status.
                     if (response.ok() && response.hasData()) {
                         // * Dump NLI results by JSON format.

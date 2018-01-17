@@ -22,12 +22,19 @@ import ai.olami.cloudService.SpeechRecognizer;
 
 public class SpeechRecognizerBase {
 
+    public static final int RECOGNIZE_RESULT_TYPE_STT = 0;
+    public static final int RECOGNIZE_RESULT_TYPE_ALL = 1;
+    public static final int RECOGNIZE_RESULT_TYPE_NLI = 2;
+
     protected static final String SDK_TYPE = "android";
 
     protected static final int RECORD_FRAMES = 6;
     protected final int FRAME_LENGTH_MILLISECONDS = SpeechRecognizer.AUDIO_LENGTH_MILLISECONDS_PER_FRAME;
     protected final int RESERVED_INPUT_LENGTH_MILLISECONDS = 1000;
+    protected final int INSTANT_NOISE_LENGTH_MILLISECONDS = 1000;
     protected final int VAD_TAIL_SILENCE_LEVEL = 5;
+
+    private int mRecognizeResultType = RECOGNIZE_RESULT_TYPE_STT;
 
     private int mFrameSize = 320;
     private int mRecordDataSize = RECORD_FRAMES * mFrameSize;
@@ -36,6 +43,19 @@ public class SpeechRecognizerBase {
     private int mMinFrequencyToGettingResult = 300;
     private int mFrequencyToGettingResult = 300;
     private int mVADEndMilliseconds = 3000;
+    private int mSilenceLevel = VAD_TAIL_SILENCE_LEVEL;
+
+    protected int getRecognizeResultType() {
+        return mRecognizeResultType;
+    }
+
+    protected int getSilenceLevel() {
+        return mSilenceLevel;
+    }
+
+    protected void setSilenceLevel(int level) {
+        mSilenceLevel = level;
+    }
 
     protected int getFrameSize() {
         return mFrameSize;
@@ -130,4 +150,33 @@ public class SpeechRecognizerBase {
     public void setLengthOfVADEnd(int milliseconds) {
         setVADEndMilliseconds(milliseconds);
     }
+
+    /**
+     * Set level of silence volume of the VAD to stop voice recording automatically.
+     *
+     * @param level - level for the silence volume.
+     */
+    public void setSilenceLevelOfVADTail(int level) {
+        if (level < 0) {
+            throw new IllegalArgumentException("The level cannot be less than 0");
+        }
+        setSilenceLevel(level);
+    }
+
+    /**
+     * Set type of the recognition results of the query.
+     *
+     * @param type - Type of the recognition results:
+     *               RECOGNIZE_RESULT_TYPE_STT to get result of Speech-To-Text.
+     *               RECOGNIZE_RESULT_TYPE_ALL to get results of the all types.
+     *               RECOGNIZE_RESULT_TYPE_NLI to get results of Speech-To-Text and NLI.
+     */
+    public void setRecognizeResultType(int type) {
+        if ((type >= 0) && (type <= 2)) {
+            mRecognizeResultType = type;
+        } else {
+            throw new IllegalArgumentException("Illegal Argument [type]: " + type);
+        }
+    }
+
 }

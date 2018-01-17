@@ -30,6 +30,8 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,9 +40,11 @@ import ai.olami.android.RecorderSpeechRecognizer;
 import ai.olami.cloudService.APIConfiguration;
 import ai.olami.cloudService.APIResponse;
 import ai.olami.cloudService.SpeechResult;
+import ai.olami.cloudService.NLIConfig;
 
 public class SpeechInputActivity extends AppCompatActivity {
-    public final static String TAG = "SpeechInputActivity";
+
+    private final static String TAG = "SpeechInputActivity";
 
     private static final int REQUEST_EXTERNAL_PERMISSION = 1;
     private static final int REQUEST_MICROPHONE = 3;
@@ -64,6 +68,8 @@ public class SpeechInputActivity extends AppCompatActivity {
     private RecorderSpeechRecognizer.RecordState mRecordState;
     private RecorderSpeechRecognizer.RecognizeState mRecognizeState;
 
+    private Switch mAutoStopSwitch;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +91,15 @@ public class SpeechInputActivity extends AppCompatActivity {
 
         recordButton.setOnClickListener(new recordButtonListener());
         cancelButton.setOnClickListener(new cancelButtonListener());
+
+        mAutoStopSwitch = (Switch) findViewById(R.id.autoStopSwitch);
+        mAutoStopSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mRecognizer != null) {
+                    mRecognizer.enableAutoStopRecording(isChecked);
+                }
+            }
+        });
     }
 
     @Override
@@ -108,8 +123,12 @@ public class SpeechInputActivity extends AppCompatActivity {
             //           listener class into this recognizer.
             mRecognizer = RecorderSpeechRecognizer.create(new SpeechRecognizerListener(), config);
 
-            // * Optional steps: Setup some other configurations.
-            //                   You can use default settings without bellow steps.
+            // * Optional step: Setup the recognize result type of your request.
+            //                  The default setting is RECOGNIZE_RESULT_TYPE_STT for Speech-To-Text.
+            mRecognizer.setRecognizeResultType(RecorderSpeechRecognizer.RECOGNIZE_RESULT_TYPE_ALL);
+
+            // * Other optional steps: Setup some other configurations.
+            //                         You can use default settings without bellow steps.
             mRecognizer.setEndUserIdentifier("Someone");
             mRecognizer.setApiRequestTimeout(3000);
 
@@ -132,6 +151,12 @@ public class SpeechInputActivity extends AppCompatActivity {
 
             // Initialize volume bar of the input audio.
             voiceVolumeChangeHandler(0);
+
+            if (mRecognizer.isAutoStopRecordingEnabled()) {
+                autoStopSwitchChangeHandler(true);
+            } else {
+                autoStopSwitchChangeHandler(false);
+            }
         }
     }
 
@@ -157,6 +182,16 @@ public class SpeechInputActivity extends AppCompatActivity {
 
                     // * Request to start voice recording and recognition.
                     mRecognizer.start();
+                    //
+                    // You can also send text with NLIConfig to append "nli_config" JSON object.
+                    //
+                    // For Example, try to replace 'start()' with the following sample code:
+                    // ===================================================================
+                    // NLIConfig nliConfig = new NLIConfig();
+                    // nliConfig.setSlotName("myslot");
+                    // mRecognizer.start(nliConfig);
+                    // ===================================================================
+                    //
 
                 } catch (InterruptedException e) {
 
@@ -490,6 +525,14 @@ public class SpeechInputActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),
                         errorString,
                         Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void autoStopSwitchChangeHandler(final boolean isChecked) {
+        new Handler(this.getMainLooper()).post(new Runnable(){
+            public void run(){
+                mAutoStopSwitch.setChecked(isChecked);
             }
         });
     }

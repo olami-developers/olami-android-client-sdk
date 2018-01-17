@@ -39,4 +39,5 @@
     <string name="GetMicrophonePermission">取得麥克風權限成功</string>
     <string name="GetWriteStoragePermission">取得寫入外部裝置權限成功</string>
     <string name="GetWriteStoragePermissionDenied">取得寫入外部裝置權限失敗</string>
+    <string name="autoStop">自動停止</string>
 </resources>

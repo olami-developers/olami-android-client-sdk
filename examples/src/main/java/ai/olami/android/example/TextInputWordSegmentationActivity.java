@@ -36,7 +36,8 @@ import ai.olami.cloudService.TextRecognizer;
 import ai.olami.util.GsonFactory;
 
 public class TextInputWordSegmentationActivity extends AppCompatActivity {
-    public final static String TAG = "TextInputWordSegmentationActivity";
+
+    private final static String TAG = "TextInputWordSegmentationActivity";
 
     private Button textInputSubmitButton;
     private EditText textInputEdit;

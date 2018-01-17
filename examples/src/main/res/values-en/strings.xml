@@ -39,4 +39,5 @@
     <string name="GetMicrophonePermission">Getting microphone permission success</string>
     <string name="GetWriteStoragePermission">Getting write storage permission success</string>
     <string name="GetWriteStoragePermissionDenied">Getting write storage permission denied</string>
+    <string name="autoStop">Auto Stop</string>
 </resources>

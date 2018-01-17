@@ -51,7 +51,7 @@ import static java.util.Locale.TAIWAN;
 
 public class MainActivity extends AppCompatActivity {
 
-    public final static String TAG = "MainActivity";
+    private final static String TAG = "MainActivity";
 
     private EditText appKeyEditText;
     private EditText appSecretEditText;

@@ -37,11 +37,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import ai.olami.cloudService.APIConfiguration;
 import ai.olami.cloudService.APIResponse;
 import ai.olami.cloudService.CookieSet;
+import ai.olami.cloudService.NLIConfig;
 import ai.olami.cloudService.SpeechRecognizer;
 import ai.olami.cloudService.SpeechResult;
 
 public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
-    private final static String TAG = "KeepRecordingSpeechRecognizer";
+
+    private final static String TAG = "KRSR";
 
     private static KeepRecordingSpeechRecognizer mKeepRecordingSpeechRecognizer = null;
     private static AudioRecordManager mAudioRecordManager = null;
@@ -51,6 +53,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
     private AudioRecord mAudioRecord = null;
 
     private CookieSet mCookie = null;
+    private NLIConfig mNLIConfig = null;
 
     private BlockingQueue mRecordDataQueue = null;
 
@@ -250,6 +253,19 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
      * @throws InterruptedException There is something wrong.
      */
     public void startRecognizing() throws InterruptedException {
+        startRecognizing(null);
+    }
+
+    /**
+     * Start the recognize processing.
+     * The voice recording must be started before you use this method.
+     *
+     * @param nliConfig - NLIConfig object.
+     *
+     * @throws InterruptedException There is something wrong.
+     */
+    public void startRecognizing(NLIConfig nliConfig) throws InterruptedException {
+
         int wait = 0;
         while (mRecognizeState != RecognizeState.STOPPED) {
             if (wait >= 10) {
@@ -268,6 +284,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
         mIsFinal = false;
         mCapturedVoiceBegin = false;
         mCookie = new CookieSet();
+        mNLIConfig = nliConfig;
 
         mRecordDataQueue = new LinkedBlockingQueue();
 
@@ -317,6 +334,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
 
         // Check to see if recognize process timeout.
         checkRecognizeTimeout();
+
     }
 
     /**
@@ -392,9 +410,12 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
         byte[] audioData = null;
         LinkedList<byte[]> tempInputs = new LinkedList<byte[]>();
         int reservedBlocks = (RESERVED_INPUT_LENGTH_MILLISECONDS / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
+        int instantNoiseBlocks = (INSTANT_NOISE_LENGTH_MILLISECONDS / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
         int vadTailBlocks = (getVADEndMilliseconds() / (RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS));
         int inputVolume = 0;
+        int priInputVolume = 0;
         int silence = 0;
+        int instantNoise = 0;
 
         while (mRecording) {
             synchronized (mRecordDataQueue) {
@@ -424,15 +445,31 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
                         }
                     } else {
                         mRecordDataQueue.put(audioData);
-                        if (inputVolume < VAD_TAIL_SILENCE_LEVEL) {
-                            silence++;
-                            if (silence > vadTailBlocks) {
-                                break;
+                        if (inputVolume > getSilenceLevel()) {
+                            if (silence == 0) {
+                                instantNoise = 0;
+                            }
+                            if (silence > 0) {
+                                if (instantNoise == 0) {
+                                    instantNoise++;
+                                } else {
+                                    if ((instantNoise < instantNoiseBlocks)
+                                            && (priInputVolume > inputVolume)) {
+                                        instantNoise++;
+                                    } else {
+                                        silence = 0;
+                                    }
+                                }
                             }
                         } else {
-                            silence = 0;
+                            silence++;
+                        }
+                        if (silence > vadTailBlocks) {
+                            break;
                         }
                     }
+
+                    priInputVolume = inputVolume;
                 }
             }
         }
@@ -494,7 +531,18 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
         while (!mCancel) {
             if (mGetting) {
                 Thread.sleep(getFrequencyToGettingResult());
-                APIResponse response = mRecognizer.requestRecognitionWithAll(mCookie);
+                APIResponse response = null;
+                switch (getRecognizeResultType()) {
+                    case RECOGNIZE_RESULT_TYPE_ALL:
+                        response = mRecognizer.requestRecognitionWithAll(mCookie, mNLIConfig);
+                        break;
+                    case RECOGNIZE_RESULT_TYPE_STT:
+                        response = mRecognizer.requestRecognition(mCookie);
+                        break;
+                    case RECOGNIZE_RESULT_TYPE_NLI:
+                        response = mRecognizer.requestRecognitionWithNLI(mCookie, mNLIConfig);
+                        break;
+                }
                 if (response.ok() && response.hasData()) {
                     SpeechResult sttResult = response.getData().getSpeechResult();
                     if (mSendCallback) {
