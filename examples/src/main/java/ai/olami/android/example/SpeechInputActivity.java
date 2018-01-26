@@ -138,15 +138,20 @@ public class SpeechInputActivity extends AppCompatActivity {
             // ------------------------------------------------------------------
             // * You can set the length of end time of the VAD in milliseconds
             //   to stop voice recording automatically.
-            mRecognizer.setLengthOfVADEnd(3000);
+            mRecognizer.setLengthOfVADEnd(2000);
             // * You can set the frequency in milliseconds of the recognition
             //   result query, then the recognizer client will query the result
             //   once every milliseconds you set.
-            mRecognizer.setResultQueryFrequency(300);
+            mRecognizer.setResultQueryFrequency(100);
             // * You can set audio length in milliseconds to upload, then
             //   the recognizer client will upload parts of audio once every
             //   milliseconds you set.
             mRecognizer.setSpeechUploadLength(300);
+            // * Due to the different microphone sensitivity of each different device,
+            //   you can set level of silence volume of the VAD
+            //   to stop voice recording automatically.
+            //   The recommended value is 5 to 10.
+            mRecognizer.setSilenceLevelOfVADTail(5);
             // ------------------------------------------------------------------
 
             // Initialize volume bar of the input audio.

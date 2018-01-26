@@ -40,9 +40,9 @@ public class SpeechRecognizerBase {
     private int mRecordDataSize = RECORD_FRAMES * mFrameSize;
     private int mMinUploadAudioLengthMilliseconds = RECORD_FRAMES * FRAME_LENGTH_MILLISECONDS;
     private int mUploadAudioLengthMilliseconds = 300;
-    private int mMinFrequencyToGettingResult = 300;
-    private int mFrequencyToGettingResult = 300;
-    private int mVADEndMilliseconds = 3000;
+    private int mMinFrequencyToGettingResult = 100;
+    private int mFrequencyToGettingResult = 100;
+    private int mVADEndMilliseconds = 2000;
     private int mSilenceLevel = VAD_TAIL_SILENCE_LEVEL;
 
     protected int getRecognizeResultType() {
