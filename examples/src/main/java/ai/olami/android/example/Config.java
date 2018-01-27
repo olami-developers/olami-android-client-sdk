@@ -22,9 +22,6 @@ import ai.olami.cloudService.APIConfiguration;
 
 public class Config {
 
-    // * Setting localize option
-    public static int SAMPLE_LOCALIZE_OPTION = APIConfiguration.LOCALIZE_OPTION_SIMPLIFIED_CHINESE;
-
     // * Replace your APP KEY with this variable.
     private static String mAppKey = "*****your-app-key*****";
     public static void setAppKey(String appKey) {
@@ -43,7 +40,11 @@ public class Config {
         return mAppSecret;
     }
 
-    private static int mLocalizeOption = SAMPLE_LOCALIZE_OPTION;
+    // * Replace the localize option you want with this variable.
+    // * - Use LOCALIZE_OPTION_SIMPLIFIED_CHINESE for China
+    // * - Use LOCALIZE_OPTION_TRADITIONAL_CHINESE for Taiwan
+    private static int mLocalizeOption = APIConfiguration.LOCALIZE_OPTION_SIMPLIFIED_CHINESE;
+//    private static int mLocalizeOption = APIConfiguration.LOCALIZE_OPTION_TRADITIONAL_CHINESE;
     public static void setLocalizeOption(int localizeOption) {
         mLocalizeOption = localizeOption;
     }
