@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import ai.olami.android.jni.Codec;
 import ai.olami.cloudService.APIConfiguration;
 import ai.olami.cloudService.APIResponse;
 import ai.olami.cloudService.CookieSet;
@@ -81,7 +82,8 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
 
     private VoiceVolume mVoiceVolume = new VoiceVolume();
 
-    private RecognizeState mRecognizeState;
+    private RecognizeState mRecognizeState = null;
+    private Codec mSpeexEncoder = null;
 
     /**
      * Recognize process state
@@ -482,7 +484,6 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
 
     private void doSending() throws Exception {
         int length = 0;
-        mRecognizer.setAudioType(SpeechRecognizer.AUDIO_TYPE_PCM_RAW);
         mRecognizer.releaseAppendedAudio();
 
         while (!mCancel) {
@@ -491,7 +492,19 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
                     byte[] audioData = (byte[]) mRecordDataQueue.take();
                     mIsFinal = (isRecognizerStopped() && (mRecordDataQueue.isEmpty()));
                     length += ((audioData.length / getFrameSize()) * FRAME_LENGTH_MILLISECONDS);
-                    mRecognizer.appendAudioFramesData(audioData);
+                    if (getAudioCompressLibraryType() == AUDIO_COMPRESS_LIBRARY_TYPE_CPP) {
+                        if (mSpeexEncoder == null) {
+                            mSpeexEncoder = new Codec();
+                            mSpeexEncoder.open(1, 10);
+                        }
+                        byte[] encBuffer = new byte[audioData.length];
+                        int encSize = mSpeexEncoder.encodeByte(audioData, 0, audioData.length, encBuffer);
+                        mRecognizer.setAudioType(SpeechRecognizer.AUDIO_TYPE_PCM_SPEEX);
+                        mRecognizer.appendSpeexAudioFramesData(encBuffer, encSize);
+                    } else {
+                        mRecognizer.setAudioType(SpeechRecognizer.AUDIO_TYPE_PCM_RAW);
+                        mRecognizer.appendAudioFramesData(audioData);
+                    }
 
                     if ((length >= getUploadAudioLengthMilliseconds()) || mIsFinal) {
                         APIResponse response = mRecognizer.flushToUploadAudio(mCookie, mIsFinal);
@@ -507,6 +520,7 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
                     // Recorder stopped and the last audio sent at the same time, but mIsFinal = false.
                     if (isRecognizerStopped()) {
                         mIsFinal = true;
+                        mRecognizer.setAudioType(SpeechRecognizer.AUDIO_TYPE_PCM_RAW);
                         byte[] audioData = new byte[getRecordDataSize()];
                         Arrays.fill(audioData, (byte) 0);
                         APIResponse response = mRecognizer.uploadAudio(mCookie, audioData, mIsFinal);
@@ -524,6 +538,11 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
                     break;
                 }
             }
+        }
+
+        if (mSpeexEncoder != null) {
+            mSpeexEncoder.close();
+            mSpeexEncoder = null;
         }
     }
 

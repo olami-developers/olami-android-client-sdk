@@ -26,6 +26,9 @@ public class SpeechRecognizerBase {
     public static final int RECOGNIZE_RESULT_TYPE_ALL = 1;
     public static final int RECOGNIZE_RESULT_TYPE_NLI = 2;
 
+    public static final int AUDIO_COMPRESS_LIBRARY_TYPE_JAVA = 1;
+    public static final int AUDIO_COMPRESS_LIBRARY_TYPE_CPP = 2;
+
     protected static final String SDK_TYPE = "android";
 
     protected static final int RECORD_FRAMES = 6;
@@ -35,6 +38,7 @@ public class SpeechRecognizerBase {
     protected final int VAD_TAIL_SILENCE_LEVEL = 5;
 
     private int mRecognizeResultType = RECOGNIZE_RESULT_TYPE_STT;
+    private int mAudioCompressLibraryType = AUDIO_COMPRESS_LIBRARY_TYPE_CPP;
 
     private int mFrameSize = 320;
     private int mRecordDataSize = RECORD_FRAMES * mFrameSize;
@@ -44,6 +48,10 @@ public class SpeechRecognizerBase {
     private int mFrequencyToGettingResult = 100;
     private int mVADEndMilliseconds = 2000;
     private int mSilenceLevel = VAD_TAIL_SILENCE_LEVEL;
+
+    public int getAudioCompressLibraryType() {
+        return mAudioCompressLibraryType;
+    }
 
     protected int getRecognizeResultType() {
         return mRecognizeResultType;
@@ -177,6 +185,26 @@ public class SpeechRecognizerBase {
         } else {
             throw new IllegalArgumentException("Illegal Argument [type]: " + type);
         }
+    }
+
+    /**
+     * Set type of the audio compression library.
+     *
+     * @param type - Type of the recognition results:
+     *               RECOGNIZE_RESULT_TYPE_STT to get result of Speech-To-Text.
+     *               RECOGNIZE_RESULT_TYPE_ALL to get results of the all types.
+     *               RECOGNIZE_RESULT_TYPE_NLI to get results of Speech-To-Text and NLI.
+     */
+    public void setAudioCompressLibraryType(int type) {
+        switch (type) {
+            case AUDIO_COMPRESS_LIBRARY_TYPE_JAVA:
+                break;
+            case AUDIO_COMPRESS_LIBRARY_TYPE_CPP:
+                break;
+            default:
+                throw new IllegalArgumentException("Illegal library type code.");
+        }
+        mAudioCompressLibraryType = type;
     }
 
 }
