@@ -82,8 +82,9 @@ public class KeepRecordingSpeechRecognizer extends SpeechRecognizerBase {
 
     private VoiceVolume mVoiceVolume = new VoiceVolume();
 
-    private RecognizeState mRecognizeState = null;
     private Codec mSpeexEncoder = null;
+
+    private RecognizeState mRecognizeState = null;
 
     /**
      * Recognize process state

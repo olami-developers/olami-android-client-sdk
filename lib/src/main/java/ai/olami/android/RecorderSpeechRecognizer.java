@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import ai.olami.android.jni.Codec;
 import ai.olami.cloudService.APIConfiguration;
 import ai.olami.cloudService.APIResponse;
 import ai.olami.cloudService.CookieSet;
@@ -75,8 +76,10 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
 
     private VoiceVolume mVoiceVolume = new VoiceVolume();
 
-    private RecordState mRecordState;
-    private RecognizeState mRecognizeState;
+    private Codec mSpeexEncoder = null;
+
+    private RecordState mRecordState = null;
+    private RecognizeState mRecognizeState = null;
 
     /**
      * Recording state
@@ -482,7 +485,19 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
                 byte[] audioData = (byte[]) mRecordDataQueue.take();
                 mIsFinal = (isRecodingStopped() && (mRecordDataQueue.isEmpty()));
                 length += ((audioData.length / getFrameSize()) * FRAME_LENGTH_MILLISECONDS);
-                mRecognizer.appendAudioFramesData(audioData);
+                if (getAudioCompressLibraryType() == AUDIO_COMPRESS_LIBRARY_TYPE_CPP) {
+                    if (mSpeexEncoder == null) {
+                        mSpeexEncoder = new Codec();
+                        mSpeexEncoder.open(1, 10);
+                    }
+                    byte[] encBuffer = new byte[audioData.length];
+                    int encSize = mSpeexEncoder.encodeByte(audioData, 0, audioData.length, encBuffer);
+                    mRecognizer.setAudioType(SpeechRecognizer.AUDIO_TYPE_PCM_SPEEX);
+                    mRecognizer.appendSpeexAudioFramesData(encBuffer, encSize);
+                } else {
+                    mRecognizer.setAudioType(SpeechRecognizer.AUDIO_TYPE_PCM_RAW);
+                    mRecognizer.appendAudioFramesData(audioData);
+                }
                 if ((length >= getUploadAudioLengthMilliseconds()) || mIsFinal) {
                     APIResponse response = mRecognizer.flushToUploadAudio(mCookie, mIsFinal);
                     if (response.ok()) {
@@ -512,6 +527,11 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
             if (mIsFinal) {
                 break;
             }
+        }
+
+        if (mSpeexEncoder != null) {
+            mSpeexEncoder.close();
+            mSpeexEncoder = null;
         }
 
         synchronized (mRecordDataQueue) {
