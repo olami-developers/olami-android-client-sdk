@@ -62,8 +62,7 @@ configurations {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'ai.olami:olami-java-client:1.5.0'
-
+    compile 'com.google.code.gson:gson:2.8.1'
     doc 'ai.olami:olami-java-client:1.5.0:sources'
 }
 

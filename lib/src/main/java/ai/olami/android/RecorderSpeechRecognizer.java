@@ -514,7 +514,7 @@ public class RecorderSpeechRecognizer extends SpeechRecognizerBase{
                     mIsFinal = true;
                     byte[] audioData = new byte[getRecordDataSize()];
                     Arrays.fill(audioData, (byte) 0);
-                    APIResponse response = mRecognizer.uploadAudio(mCookie, audioData, mIsFinal);
+                    APIResponse response = mRecognizer.uploadSpeexAudio(mCookie, audioData, audioData.length,mIsFinal);
                     if (response.ok()) {
                         mGetting = true;
                     } else {
