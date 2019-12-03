@@ -8,7 +8,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 25
         versionCode 1
-        versionName "2.6.1"
+        versionName "2.6.2"
 
         archivesBaseName = "olami-android-client"
         version = android.defaultConfig.versionName
